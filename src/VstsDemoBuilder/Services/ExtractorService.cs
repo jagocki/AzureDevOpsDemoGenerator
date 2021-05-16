@@ -276,6 +276,7 @@ namespace VstsDemoBuilder.Services
             {
                 foreach (var workItem in workItemtypes)
                 {
+                    itemsCount.LastFailureMessage = "";
                     WorkItemFetchResponse.WorkItems WITCount = itemsCount.GetWorkItemsfromSource(workItem);
                     if (WITCount.count > 0)
                     {
@@ -283,7 +284,7 @@ namespace VstsDemoBuilder.Services
                     }
                     else if (!string.IsNullOrEmpty(itemsCount.LastFailureMessage))
                     {
-                        errorMessages.Add("Error while querying work items: " + itemsCount.LastFailureMessage);
+                        errorMessages.Add(string.Format("Error while querying work item - {0}: {1}", workItem, itemsCount.LastFailureMessage));
                     }
                 }
             }
@@ -706,7 +707,7 @@ namespace VstsDemoBuilder.Services
                     string workItemJson = JsonConvert.SerializeObject(fetchedWorkItem, Formatting.Indented);
                     if (fetchedWorkItem.count > 0)
                     {
-                        workItemJson = workItemJson.Replace(appConfig.WorkItemConfig.Project, "$ProjectName$");
+                        workItemJson = workItemJson.Replace(appConfig.WorkItemConfig.Project + "\\", "$ProjectName$\\");
                         string item = WIT;
                         if (!Directory.Exists(extractedTemplatePath + appConfig.WorkItemConfig.Project + "\\WorkItems"))
                         {
@@ -1134,7 +1135,10 @@ namespace VstsDemoBuilder.Services
                     splitYmlRepoUrl[4] = "$ProjectName$";
                     ymlRepoUrl = string.Join("/", splitYmlRepoUrl);
                     def["repository"]["url"] = ymlRepoUrl;
+                    def["repository"]["properties"]["cloneUrl"] = ymlRepoUrl;
                 }
+                def["repository"]["properties"]["safeRepository"] = string.Format("${0}$", def["repository"]["name"].ToString());
+                def["repository"]["id"] = string.Format("${0}$", def["repository"]["name"].ToString());
                 var queueHref = def["queue"]["_links"]["self"]["href"].ToString();
                 if (queueHref != "")
                 {
@@ -1247,14 +1251,18 @@ namespace VstsDemoBuilder.Services
                                     {
                                         if (queue.Count > 0)
                                         {
-                                            var agenetName = queue.Where(x => x.Value.ToString() == queueID.ToString()).FirstOrDefault();
-                                            if (agenetName.Key != null)
+                                            var q = queue.ContainsValue(Convert.ToInt32(queueID));
+                                            if (q)
                                             {
-                                                queueName = agenetName.Key.ToString();
-                                            }
-                                            else
-                                            {
-                                                queueName = "";
+                                                var agenetName = queue.Where(x => x.Value.ToString() == queueID.ToString()).FirstOrDefault();
+                                                if (agenetName.Key != null)
+                                                {
+                                                    queueName = agenetName.Key.ToString();
+                                                }
+                                                else
+                                                {
+                                                    queueName = "";
+                                                }
                                             }
                                         }
                                     }
@@ -1404,6 +1412,13 @@ namespace VstsDemoBuilder.Services
                                         endpoint.authorization.parameters.authenticationType = endpoint.authorization.parameters.authenticationType ?? "spnKey";
                                         endpoint.authorization.parameters.tenantId = endpoint.authorization.parameters.tenantId ?? Guid.NewGuid().ToString();
                                         endpoint.authorization.parameters.servicePrincipalKey = endpoint.authorization.parameters.servicePrincipalKey ?? "spnKey";
+                                        switch (endpoint.data.scopeLevel)
+                                        {
+                                            case "ManagementGroup":
+                                                endpoint.data.managementGroupId = endpoint.data.managementGroupId ?? "managedgroup";
+                                                endpoint.data.managementGroupName = endpoint.data.managementGroupName ?? "groupname";
+                                                break;
+                                        }
                                         break;
                                 }
                                 break;

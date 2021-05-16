@@ -125,7 +125,7 @@
             "condition": "succeeded()",
             "task": {
               "id": "584bcff2-3353-4f11-872b-6ba01267a972",
-              "versionSpec": "5.*",
+              "versionSpec": "6.*",
               "definitionType": "task"
             },
             "inputs": {
@@ -294,6 +294,11 @@
         "jobCancelTimeoutInMinutes": 1
       }
     ],
+    "target": {
+      "agentSpecification": {
+        "identifier": "ubuntu-16.04"
+      }
+    },
     "type": 1
   },
   "repository": {
@@ -317,9 +322,9 @@
   "quality": 1,
   "drafts": [],
   "queue": {
-    "name": "Hosted Ubuntu 1604",
+    "name": "Azure Pipelines",
     "pool": {
-      "name": "Hosted Ubuntu 1604",
+      "name": "Azure Pipelines",
       "isHosted": true
     }
   },
